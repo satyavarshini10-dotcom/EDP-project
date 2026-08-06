@@ -1,9 +1,18 @@
+# ============================================================
+# HEART DISEASE PREDICTION
+# Week 1 Project
+# ============================================================
+
+# ============================================================
+# Import Libraries
+# ============================================================
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -15,236 +24,244 @@ from sklearn.metrics import (
 )
 
 # ============================================================
-# 1. LOAD DATASET
+# Load Dataset
 # ============================================================
 
-print("=" * 60)
-print("HEART DISEASE PREDICTION PROJECT")
-print("=" * 60)
-
+# Change the filename if needed
 df = pd.read_csv("heart.csv")
 
-print("\nDataset Loaded Successfully!")
-
-# ============================================================
-# 2. DISPLAY DATASET
-# ============================================================
-
-print("\nFirst 5 Rows")
+print("="*60)
+print("First 5 Rows")
+print("="*60)
 print(df.head())
 
-print("\nLast 5 Rows")
-print(df.tail())
+# ============================================================
+# Dataset Information
+# ============================================================
 
-print("\nDataset Shape:", df.shape)
+print("\nDataset Shape")
+print(df.shape)
 
 print("\nColumn Names")
-print(df.columns.tolist())
-
-# ============================================================
-# 3. DATASET INFORMATION
-# ============================================================
+print(df.columns)
 
 print("\nDataset Information")
-df.info()
+print(df.info())
 
 print("\nStatistical Summary")
-print(df.describe(include="all"))
+print(df.describe())
 
 # ============================================================
-# 4. HANDLE MISSING VALUES
+# Check Missing Values
 # ============================================================
 
 print("\nMissing Values")
 print(df.isnull().sum())
 
-for column in df.columns:
-    if df[column].dtype == "object":
-        df[column] = df[column].fillna(df[column].mode()[0])
-    else:
-        df[column] = df[column].fillna(df[column].mean())
+# Fill missing values if any
 
-print("\nMissing Values After Cleaning")
-print(df.isnull().sum())
+for column in df.columns:
+
+    if df[column].dtype == "object":
+        df[column].fillna(df[column].mode()[0], inplace=True)
+
+    else:
+        df[column].fillna(df[column].median(), inplace=True)
 
 # ============================================================
-# 5. REMOVE DUPLICATES
+# Remove Duplicate Rows
 # ============================================================
 
 print("\nDuplicate Rows:", df.duplicated().sum())
 
-df = df.drop_duplicates()
-
-print("Shape After Removing Duplicates:", df.shape)
+df.drop_duplicates(inplace=True)
 
 # ============================================================
-# 6. ENCODE CATEGORICAL COLUMNS
+# Encode Categorical Columns
 # ============================================================
 
-label_encoder = LabelEncoder()
+encoder = LabelEncoder()
 
 for column in df.columns:
+
     if df[column].dtype == "object":
-        df[column] = label_encoder.fit_transform(df[column])
+        df[column] = encoder.fit_transform(df[column])
 
 # ============================================================
-# 7. FIND TARGET COLUMN
-# ============================================================
-
-possible_targets = [
-    "target",
-    "Target",
-    "HeartDisease",
-    "heart_disease",
-    "output"
-]
-
-target_column = None
-
-for col in possible_targets:
-    if col in df.columns:
-        target_column = col
-        break
-
-if target_column is None:
-    raise Exception(
-        "Target column not found.\nAvailable columns:\n{}".format(df.columns.tolist())
-    )
-
-print("\nTarget Column:", target_column)
-
-print("\nTarget Distribution")
-print(df[target_column].value_counts())
-
-# ============================================================
-# 8. CORRELATION MATRIX
+# Correlation Matrix
 # ============================================================
 
 print("\nCorrelation Matrix")
-print(df.corr(numeric_only=True))
+
+print(df.corr())
 
 # ============================================================
-# 9. VISUALIZATION
+# Features and Label
 # ============================================================
 
-plt.figure(figsize=(6,4))
-df[target_column].value_counts().plot(kind="bar")
-plt.title("Heart Disease Distribution")
-plt.xlabel("Class")
-plt.ylabel("Count")
-plt.tight_layout()
-plt.show()
+# Target column should be named "target"
+
+X = df.drop("target", axis=1)
+
+y = df["target"]
+
+print("\nFeatures Shape:", X.shape)
+print("Target Shape:", y.shape)
 
 # ============================================================
-# 10. FEATURES & LABEL
-# ============================================================
-
-X = df.drop(columns=[target_column])
-y = df[target_column]
-
-print("\nFeatures")
-print(X.head())
-
-print("\nLabels")
-print(y.head())
-
-# ============================================================
-# 11. TRAIN TEST SPLIT
+# Train Test Split
 # ============================================================
 
 X_train, X_test, y_train, y_test = train_test_split(
+
     X,
     y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y
+    test_size=0.20,
+    random_state=42
+
 )
 
-print("\nTraining Shape:", X_train.shape)
-print("Testing Shape :", X_test.shape)
+print("\nTraining Samples:", X_train.shape)
+print("Testing Samples:", X_test.shape)
 
 # ============================================================
-# 12. FEATURE SCALING
+# Feature Scaling
 # ============================================================
 
 scaler = StandardScaler()
 
 X_train = scaler.fit_transform(X_train)
+
 X_test = scaler.transform(X_test)
 
 # ============================================================
-# 13. MODEL TRAINING
+# Model Building
 # ============================================================
 
 model = LogisticRegression(max_iter=1000)
 
 model.fit(X_train, y_train)
 
-print("\nModel Trained Successfully!")
-
 # ============================================================
-# 14. PREDICTION
+# Prediction
 # ============================================================
 
 y_pred = model.predict(X_test)
 
 # ============================================================
-# 15. EVALUATION
+# Evaluation
 # ============================================================
 
-print("\nAccuracy :", round(accuracy_score(y_test, y_pred)*100,2),"%")
-print("Precision:", round(precision_score(y_test,y_pred)*100,2),"%")
-print("Recall   :", round(recall_score(y_test,y_pred)*100,2),"%")
-print("F1 Score :", round(f1_score(y_test,y_pred)*100,2),"%")
+accuracy = accuracy_score(y_test, y_pred)
+
+precision = precision_score(y_test, y_pred)
+
+recall = recall_score(y_test, y_pred)
+
+f1 = f1_score(y_test, y_pred)
+
+print("\nAccuracy :", accuracy)
+
+print("Precision:", precision)
+
+print("Recall   :", recall)
+
+print("F1 Score :", f1)
+
+# ============================================================
+# Confusion Matrix
+# ============================================================
+
+cm = confusion_matrix(y_test, y_pred)
 
 print("\nConfusion Matrix")
-print(confusion_matrix(y_test,y_pred))
+
+print(cm)
+
+# ============================================================
+# Classification Report
+# ============================================================
 
 print("\nClassification Report")
-print(classification_report(y_test,y_pred))
+
+print(classification_report(y_test, y_pred))
 
 # ============================================================
-# 16. SAMPLE PREDICTION
-# ============================================================
-
-sample_patient = X.iloc[[0]].copy()
-
-sample_scaled = scaler.transform(sample_patient)
-
-prediction = model.predict(sample_scaled)
-
-print("\nSample Prediction")
-
-if prediction[0] == 1:
-    print("Heart Disease Detected")
-else:
-    print("No Heart Disease Detected")
-
-# ============================================================
-# 17. FEATURE IMPORTANCE
+# Feature Importance
 # ============================================================
 
 importance = pd.DataFrame({
+
     "Feature": X.columns,
     "Coefficient": model.coef_[0]
+
 })
 
 importance = importance.sort_values(
+
     by="Coefficient",
     ascending=False
+
 )
 
 print("\nFeature Importance")
+
 print(importance)
 
 # ============================================================
-# 18. SAVE CLEANED DATASET
+# Visualization
 # ============================================================
 
-df.to_csv("heart_cleaned.csv", index=False)
+plt.figure(figsize=(10,6))
 
-print("\nCleaned Dataset Saved Successfully!")
+plt.bar(
 
-print("\n" + "="*60)
-print("PROJECT COMPLETED SUCCESSFULLY")
-print("="*60)
+    importance["Feature"],
+    importance["Coefficient"]
+
+)
+
+plt.xticks(rotation=90)
+
+plt.title("Feature Importance")
+
+plt.xlabel("Features")
+
+plt.ylabel("Coefficient")
+
+plt.tight_layout()
+
+plt.show()
+
+# ============================================================
+# Prediction Example
+# ============================================================
+
+sample = X.iloc[[0]]
+
+sample = scaler.transform(sample)
+
+prediction = model.predict(sample)
+
+if prediction[0] == 1:
+    print("\nPrediction: Heart Disease Detected")
+else:
+    print("\nPrediction: No Heart Disease")
+
+# ============================================================
+# Save Model Predictions
+# ============================================================
+
+results = X_test.copy()
+
+results = pd.DataFrame(results)
+
+results["Actual"] = y_test.reset_index(drop=True)
+
+results["Predicted"] = y_pred
+
+results.to_csv("heart_predictions.csv", index=False)
+
+print("\nPrediction file saved successfully.")
+
+print("\nProject Completed Successfully")
