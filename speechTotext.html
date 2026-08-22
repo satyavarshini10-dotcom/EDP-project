@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Voice-Based Assistant | Speech to Text</title>
+
+
+    <style>
+
+        /* =====================================================
+           GLOBAL STYLES
+        ===================================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at top left,
+                    #243b70 0%,
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at bottom right,
+                    #4b2675 0%,
+                    transparent 35%
+                ),
+                #080d1c;
+
+            color: white;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            padding: 30px;
+
+        }
+
+
+        /* =====================================================
+           MAIN APPLICATION
+        ===================================================== */
+
+        .app {
+
+            width: 100%;
+
+            max-width: 1050px;
+
+            min-height: 650px;
+
+            background:
+                rgba(15, 22, 43, 0.92);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 24px;
+
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.45);
+
+            overflow: hidden;
+
+            backdrop-filter: blur(20px);
+
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        header {
+
+            padding:
+                28px 40px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+        }
+
+
+        .brand {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+        }
+
+
+        .brand-icon {
+
+            width: 48px;
+
+            height: 48px;
+
+            border-radius: 14px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-size: 24px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #6366f1,
+                    #8b5cf6
+                );
+
+            box-shadow:
+                0 8px 25px rgba(99, 102, 241, 0.35);
+
+        }
+
+
+        .brand-text h1 {
+
+            font-size: 21px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.2px;
+
+        }
+
+
+        .brand-text p {
+
+            margin-top: 3px;
+
+            color: #9ca8c7;
+
+            font-size: 13px;
+
+        }
+
+
+        /* =====================================================
+           STATUS INDICATOR
+        ===================================================== */
+
+        .system-status {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding:
+                8px 14px;
+
+            border-radius: 20px;
+
+            background:
+                rgba(34, 197, 94, 0.08);
+
+            border:
+                1px solid rgba(34, 197, 94, 0.18);
+
+            color: #86efac;
+
+            font-size: 13px;
+
+        }
+
+
+        .status-dot {
+
+            width: 8px;
+
+            height: 8px;
+
+            background: #22c55e;
+
+            border-radius: 50%;
+
+            box-shadow:
+                0 0 10px #22c55e;
+
+        }
+
+
+        /* =====================================================
+           MAIN CONTENT
+        ===================================================== */
+
+        .content {
+
+            display: grid;
+
+            grid-template-columns: 0.85fr 1.15fr;
+
+            gap: 30px;
+
+            padding: 35px 40px 40px;
+
+        }
+
+
+        /* =====================================================
+           LEFT PANEL
+        ===================================================== */
+
+        .control-panel {
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+
+            align-items: center;
+
+            text-align: center;
+
+            padding: 30px;
+
+            border-radius: 20px;
+
+            background:
+                rgba(255, 255, 255, 0.035);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.07);
+
+        }
+
+
+        .control-panel h2 {
+
+            font-size: 24px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .control-panel > p {
+
+            color: #9ca8c7;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+            max-width: 310px;
+
+            margin-bottom: 35px;
+
+        }
+
+
+        /* =====================================================
+           MICROPHONE
+        ===================================================== */
+
+        .mic-container {
+
+            position: relative;
+
+            width: 150px;
+
+            height: 150px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            margin-bottom: 32px;
+
+        }
+
+
+        .mic-glow {
+
+            position: absolute;
+
+            width: 150px;
+
+            height: 150px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(99, 102, 241, 0.12);
+
+            transition: 0.3s;
+
+        }
+
+
+        .mic-button {
+
+            position: relative;
+
+            z-index: 2;
+
+            width: 90px;
+
+            height: 90px;
+
+            border: none;
+
+            border-radius: 50%;
+
+            cursor: pointer;
+
+            font-size: 38px;
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #6366f1,
+                    #8b5cf6
+                );
+
+            box-shadow:
+                0 12px 35px rgba(99, 102, 241, 0.4);
+
+            transition: all 0.3s ease;
+
+        }
+
+
+        .mic-button:hover {
+
+            transform: scale(1.06);
+
+            box-shadow:
+                0 15px 45px rgba(99, 102, 241, 0.55);
+
+        }
+
+
+        .mic-button:active {
+
+            transform: scale(0.96);
+
+        }
+
+
+        /* =====================================================
+           LISTENING ANIMATION
+        ===================================================== */
+
+        .listening .mic-glow {
+
+            animation:
+                pulse 1.5s infinite;
+
+        }
+
+
+        .listening .mic-button {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ef4444,
+                    #ec4899
+                );
+
+            animation:
+                micPulse 1.2s infinite;
+
+        }
+
+
+        @keyframes pulse {
+
+            0% {
+                transform: scale(0.9);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.25);
+                opacity: 0.15;
+            }
+
+            100% {
+                transform: scale(0.9);
+                opacity: 0.5;
+            }
+
+        }
+
+
+        @keyframes micPulse {
+
+            0% {
+                box-shadow:
+                    0 12px 35px rgba(239, 68, 68, 0.4);
+            }
+
+            50% {
+                box-shadow:
+                    0 12px 50px rgba(239, 68, 68, 0.75);
+            }
+
+            100% {
+                box-shadow:
+                    0 12px 35px rgba(239, 68, 68, 0.4);
+            }
+
+        }
+
+
+        /* =====================================================
+           STATUS TEXT
+        ===================================================== */
+
+        .voice-status {
+
+            min-height: 22px;
+
+            color: #a5b4fc;
+
+            font-size: 14px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        /* =====================================================
+           CONTROL BUTTONS
+        ===================================================== */
+
+        .buttons {
+
+            display: flex;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+
+            justify-content: center;
+
+        }
+
+
+        .btn {
+
+            border: none;
+
+            border-radius: 10px;
+
+            padding:
+                11px 18px;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition: 0.25s;
+
+        }
+
+
+        .btn-primary {
+
+            background:
+                #6366f1;
+
+            color: white;
+
+        }
+
+
+        .btn-primary:hover {
+
+            background:
+                #5457e8;
+
+            transform: translateY(-2px);
+
+        }
+
+
+        .btn-danger {
+
+            background:
+                rgba(239, 68, 68, 0.12);
+
+            color: #fca5a5;
+
+            border:
+                1px solid rgba(239, 68, 68, 0.2);
+
+        }
+
+
+        .btn-danger:hover {
+
+            background:
+                rgba(239, 68, 68, 0.2);
+
+        }
+
+
+        .btn-secondary {
+
+            background:
+                rgba(255, 255, 255, 0.07);
+
+            color: #d1d5db;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+        }
+
+
+        .btn-secondary:hover {
+
+            background:
+                rgba(255, 255, 255, 0.12);
+
+        }
+
+
+        button:disabled {
+
+            opacity: 0.45;
+
+            cursor: not-allowed;
+
+            transform: none;
+
+        }
+
+
+        /* =====================================================
+           RIGHT PANEL - TRANSCRIPT
+        ===================================================== */
+
+        .transcript-panel {
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+        .panel-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        .panel-title {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+        }
+
+
+        .panel-title h2 {
+
+            font-size: 18px;
+
+        }
+
+
+        .panel-icon {
+
+            width: 34px;
+
+            height: 34px;
+
+            border-radius: 9px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background:
+                rgba(99, 102, 241, 0.13);
+
+            color: #a5b4fc;
+
+        }
+
+
+        .word-count {
+
+            color: #7180a3;
+
+            font-size: 12px;
+
+        }
+
+
+        /* =====================================================
+           TRANSCRIPT BOX
+        ===================================================== */
+
+        .transcript-box {
+
+            flex: 1;
+
+            min-height: 390px;
+
+            position: relative;
+
+            background:
+                rgba(5, 10, 25, 0.55);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 16px;
+
+            overflow: hidden;
+
+        }
+
+
+        textarea {
+
+            width: 100%;
+
+            height: 100%;
+
+            min-height: 390px;
+
+            padding: 25px;
+
+            resize: none;
+
+            border: none;
+
+            outline: none;
+
+            background: transparent;
+
+            color: #e5e7eb;
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            font-size: 16px;
+
+            line-height: 1.7;
+
+        }
+
+
+        textarea::placeholder {
+
+            color: #56617e;
+
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        footer {
+
+            border-top:
+                1px solid rgba(255, 255, 255, 0.07);
+
+            padding:
+                18px 40px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            color: #687493;
+
+            font-size: 12px;
+
+        }
+
+
+        .footer-right {
+
+            color: #7c89aa;
+
+        }
+
+
+        /* =====================================================
+           RESPONSIVE DESIGN
+        ===================================================== */
+
+        @media (max-width: 800px) {
+
+            .content {
+
+                grid-template-columns: 1fr;
+
+            }
+
+            .transcript-box {
+
+                min-height: 300px;
+
+            }
+
+            textarea {
+
+                min-height: 300px;
+
+            }
+
+        }
+
+
+        @media (max-width: 550px) {
+
+            body {
+
+                padding: 15px;
+
+            }
+
+            header {
+
+                padding: 22px;
+
+            }
+
+            .content {
+
+                padding: 25px 20px;
+
+            }
+
+            footer {
+
+                padding: 15px 20px;
+
+            }
+
+            .system-status {
+
+                display: none;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         APPLICATION
+    ====================================================== -->
+
+    <div class="app">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header>
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    🎙️
+                </div>
+
+                <div class="brand-text">
+
+                    <h1>
+                        Voice Assistant
+                    </h1>
+
+                    <p>
+                        Intelligent Speech-to-Text Interface
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                System Ready
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             MAIN CONTENT
+        ================================================== -->
+
+        <div class="content">
+
+
+            <!-- =============================================
+                 LEFT CONTROL PANEL
+            ============================================== -->
+
+            <section class="control-panel">
+
+                <h2>
+                    Voice Input
+                </h2>
+
+                <p>
+                    Speak naturally and let the system
+                    convert your voice into accurate text.
+                </p>
+
+
+                <!-- MICROPHONE -->
+
+                <div
+                    class="mic-container"
+                    id="micContainer"
+                >
+
+                    <div class="mic-glow"></div>
+
+                    <button
+                        class="mic-button"
+                        id="micButton"
+                        title="Start speaking"
+                    >
+                        🎤
+                    </button>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div
+                    class="voice-status"
+                    id="status"
+                >
+                    Ready to listen
+                </div>
+
+
+                <!-- BUTTONS -->
+
+                <div class="buttons">
+
+                    <button
+                        class="btn btn-primary"
+                        id="startButton"
+                    >
+                        Start Speaking
+                    </button>
+
+
+                    <button
+                        class="btn btn-danger"
+                        id="stopButton"
+                        disabled
+                    >
+                        Stop
+                    </button>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =============================================
+                 RIGHT TRANSCRIPT PANEL
+            ============================================== -->
+
+            <section class="transcript-panel">
+
+
+                <div class="panel-header">
+
+                    <div class="panel-title">
+
+                        <div class="panel-icon">
+                            ✦
+                        </div>
+
+                        <h2>
+                            Live Transcript
+                        </h2>
+
+                    </div>
+
+
+                    <span
+                        class="word-count"
+                        id="wordCount"
+                    >
+                        0 words
+                    </span>
+
+                </div>
+
+
+                <!-- TRANSCRIPT -->
+
+                <div class="transcript-box">
+
+                    <textarea
+                        id="output"
+                        placeholder="Your recognized speech will appear here...
+
+Click 'Start Speaking' and begin talking."
+                        readonly
+                    ></textarea>
+
+                </div>
+
+
+                <!-- CLEAR -->
+
+                <div
+                    style="
+                    display:flex;
+                    justify-content:flex-end;
+                    margin-top:12px;
+                    "
+                >
+
+                    <button
+                        class="btn btn-secondary"
+                        id="clearButton"
+                    >
+                        Clear Transcript
+                    </button>
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <footer>
+
+            <span>
+                Voice-Based Assistant • Speech Input Module
+            </span>
+
+            <span class="footer-right">
+                Speech Recognition API
+            </span>
+
+        </footer>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script>
+
+
+        // =====================================================
+        // GET HTML ELEMENTS
+        // =====================================================
+
+        const startButton =
+            document.getElementById("startButton");
+
+        const stopButton =
+            document.getElementById("stopButton");
+
+        const micButton =
+            document.getElementById("micButton");
+
+        const clearButton =
+            document.getElementById("clearButton");
+
+        const output =
+            document.getElementById("output");
+
+        const status =
+            document.getElementById("status");
+
+        const wordCount =
+            document.getElementById("wordCount");
+
+        const micContainer =
+            document.getElementById("micContainer");
+
+
+
+        // =====================================================
+        // CHECK SPEECH RECOGNITION SUPPORT
+        // =====================================================
+
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
+
+
+        if (!SpeechRecognition) {
+
+            status.textContent =
+                "Speech recognition is not supported. Please use Google Chrome.";
+
+            startButton.disabled = true;
+
+            micButton.disabled = true;
+
+        }
+
+
+        else {
+
+
+            // =================================================
+            // CREATE SPEECH RECOGNITION
+            // =================================================
+
+            const recognition =
+                new SpeechRecognition();
+
+
+            recognition.continuous = true;
+
+            recognition.interimResults = true;
+
+            recognition.lang = "en-US";
+
+
+
+            // =================================================
+            // START FUNCTION
+            // =================================================
+
+            function startListening() {
+
+                try {
+
+                    recognition.start();
+
+                    startButton.disabled = true;
+
+                    stopButton.disabled = false;
+
+                    micButton.disabled = false;
+
+                    micContainer.classList.add("listening");
+
+                    status.textContent =
+                        "Listening... Speak now";
+
+                }
+
+                catch (error) {
+
+                    console.log(error);
+
+                }
+
+            }
+
+
+
+            // =================================================
+            // STOP FUNCTION
+            // =================================================
+
+            function stopListening() {
+
+                recognition.stop();
+
+                startButton.disabled = false;
+
+                stopButton.disabled = true;
+
+                micContainer.classList.remove("listening");
+
+                status.textContent =
+                    "Ready to listen";
+
+            }
+
+
+
+            // =================================================
+            // START BUTTON
+            // =================================================
+
+            startButton.addEventListener(
+                "click",
+                startListening
+            );
+
+
+
+            // =================================================
+            // MICROPHONE BUTTON
+            // =================================================
+
+            micButton.addEventListener(
+                "click",
+                function () {
+
+                    if (startButton.disabled) {
+
+                        stopListening();
+
+                    }
+
+                    else {
+
+                        startListening();
+
+                    }
+
+                }
+            );
+
+
+
+            // =================================================
+            // STOP BUTTON
+            // =================================================
+
+            stopButton.addEventListener(
+                "click",
+                stopListening
+            );
+
+
+
+            // =================================================
+            // RECEIVE SPEECH
+            // =================================================
+
+            recognition.onresult =
+                function (event) {
+
+
+                    let finalText = "";
+
+                    let interimText = "";
+
+
+                    for (
+                        let i = event.resultIndex;
+                        i < event.results.length;
+                        i++
+                    ) {
+
+
+                        const transcript =
+                            event.results[i][0].transcript;
+
+
+                        if (
+                            event.results[i].isFinal
+                        ) {
+
+                            finalText +=
+                                transcript + " ";
+
+                        }
+
+                        else {
+
+                            interimText +=
+                                transcript;
+
+                        }
+
+                    }
+
+
+                    // Add final text
+
+                    if (finalText) {
+
+                        output.value +=
+                            finalText;
+
+                        updateWordCount();
+
+                    }
+
+
+                    // Show live speech
+
+                    if (interimText) {
+
+                        status.textContent =
+                            "Listening: " +
+                            interimText;
+
+                    }
+
+                    else {
+
+                        status.textContent =
+                            "Speech recognized successfully";
+
+                    }
+
+                };
+
+
+
+            // =================================================
+            // WHEN RECOGNITION ENDS
+            // =================================================
+
+            recognition.onend =
+                function () {
+
+                    startButton.disabled = false;
+
+                    stopButton.disabled = true;
+
+                    micContainer.classList.remove(
+                        "listening"
+                    );
+
+                    status.textContent =
+                        "Ready to listen";
+
+                };
+
+
+
+            // =================================================
+            // ERROR HANDLING
+            // =================================================
+
+            recognition.onerror =
+                function (event) {
+
+
+                    startButton.disabled = false;
+
+                    stopButton.disabled = true;
+
+                    micContainer.classList.remove(
+                        "listening"
+                    );
+
+
+                    if (
+                        event.error === "not-allowed"
+                    ) {
+
+                        status.textContent =
+                            "Microphone permission denied";
+
+                    }
+
+
+                    else if (
+                        event.error === "no-speech"
+                    ) {
+
+                        status.textContent =
+                            "No speech detected. Try again.";
+
+                    }
+
+
+                    else if (
+                        event.error === "network"
+                    ) {
+
+                        status.textContent =
+                            "Network error. Check your internet connection.";
+
+                    }
+
+
+                    else {
+
+                        status.textContent =
+                            "Speech recognition error";
+
+                    }
+
+                };
+
+
+
+            // =================================================
+            // UPDATE WORD COUNT
+            // =================================================
+
+            function updateWordCount() {
+
+                const text =
+                    output.value.trim();
+
+
+                if (!text) {
+
+                    wordCount.textContent =
+                        "0 words";
+
+                    return;
+
+                }
+
+
+                const words =
+                    text.split(/\s+/).length;
+
+
+                wordCount.textContent =
+                    words +
+                    (words === 1
+                        ? " word"
+                        : " words");
+
+            }
+
+
+
+            // =================================================
+            // CLEAR TRANSCRIPT
+            // =================================================
+
+            clearButton.addEventListener(
+                "click",
+                function () {
+
+                    output.value = "";
+
+                    wordCount.textContent =
+                        "0 words";
+
+                    status.textContent =
+                        "Transcript cleared";
+
+                }
+            );
+
+        }
+
+    </script>
+
+</body>
+
+</html>
